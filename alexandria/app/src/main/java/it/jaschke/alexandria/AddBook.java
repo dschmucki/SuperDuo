@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import it.jaschke.alexandria.data.AlexandriaContract;
+import it.jaschke.alexandria.scanner.ScannerActivity;
 import it.jaschke.alexandria.services.BookService;
 import it.jaschke.alexandria.services.DownloadImage;
 
@@ -95,11 +96,9 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 // are using an external app.
                 //when you're done, remove the toast below.
                 Context context = getActivity();
-                CharSequence text = "This button should let you scan a book for its barcode!";
-                int duration = Toast.LENGTH_SHORT;
 
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
+                Intent intent = new Intent(context, ScannerActivity.class);
+                startActivityForResult(intent, ScannerActivity.SCAN_REQUEST);
 
             }
         });
@@ -130,6 +129,17 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         return rootView;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == ScannerActivity.SCAN_REQUEST) {
+            if (resultCode == getActivity().RESULT_OK) {
+                String result = data.getStringExtra(ScannerActivity.RESULT);
+                result.replace('X', '0');
+                ean.setText(result);
+            }
+        }
+    }
+
     private void restartLoader() {
         getLoaderManager().restartLoader(LOADER_ID, null, this);
     }
@@ -139,6 +149,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         if (ean.getText().length() == 0) {
             return null;
         }
+
         String eanStr = ean.getText().toString();
         if (eanStr.length() == 10 && !eanStr.startsWith("978")) {
             eanStr = "978" + eanStr;
